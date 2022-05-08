@@ -34,10 +34,10 @@ def auth_required(f):
     return decorator
 
 
-@app.route('/validateToken', methods=['POST'])
+@app.route('/validateToken', methods=['GET'])
 def validate_token():
     headers = request.headers
-    auth_token = headers.get('access-token')
+    auth_token = headers.get('auth-token')
     jwt_data = None
     try:
         jwt_data = jwt.decode(auth_token, os.environ.get(
