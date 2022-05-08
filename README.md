@@ -23,4 +23,5 @@ pip freeze > requirements.txt
 
 # to run server
 python3 server_config.py
+```
 
