@@ -126,9 +126,9 @@ def getImages(uid):
     images = db.images.find({"uid": objID})
     usersImages = []
     for image in images:
-        print(image)
-        usersImages.append({
-            "uploaded_image": image["uploaded_image"],
-            "image_name": image["image_name"]
-        })
+        # print(image)
+        serializedImage = image
+        serializedImage['_id'] = str(image['_id'])
+        serializedImage['uid'] = str(image['uid'])
+        usersImages.append(serializedImage)
     return make_response(jsonify({"images": usersImages}), 200)
