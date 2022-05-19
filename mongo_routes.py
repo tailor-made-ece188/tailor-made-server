@@ -16,9 +16,51 @@ def getUser(uid):
     user = db.users.find_one_or_404({"_id": objID})
 
     profile = {}
+    profile["uid"] = str(objID)
     for key in profileParams:
         profile[key] = ''
         if key in user:
             profile[key] = user[key]
 
     return make_response(jsonify({'profile': profile}), 200)
+
+
+@app.route("/addImage", methods=['POST'])
+@auth_required
+def addImage(uid):
+    image_url = ""
+    image_name = ""
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_url = json_data['image_url']
+            image_name = json_data['image_name']
+        except:
+            return make_response(jsonify({"message": "Error, must include image url and name"}), 400)
+    objID = ObjectId(uid)
+    if not objID:
+        return make_response(jsonify({'message': 'missing uid'}), 400)
+    prev_image = db.images.find_one({"uid": objID, "image_name": image_name})
+    if prev_image:
+        return make_response(jsonify({'message': 'error, image name already exists associated to user'}), 406)
+    new_image = db.images.insert_one({
+        "uid": objID,
+        "image_name": image_name,
+        "uploaded_image": image_url
+    })
+    return make_response(jsonify({"message": "Successfully added image!"}), 200)
+
+
+@app.route("/getImages", methods=['GET'])
+@auth_required
+def getImages(uid):
+    objID = ObjectId(uid)
+    images = db.images.find({"uid": objID})
+    usersImages = []
+    for image in images:
+        print(image)
+        usersImages.append({
+            "uploaded_image": image["uploaded_image"],
+            "image_name": image["image_name"]
+        })
+    return make_response(jsonify({"images": usersImages}), 200)
