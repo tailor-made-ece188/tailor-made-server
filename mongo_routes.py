@@ -51,6 +51,74 @@ def addImage(uid):
     return make_response(jsonify({"message": "Successfully added image!"}), 200)
 
 
+@app.route("/addSegmentedImage", methods=['POST'])
+@auth_required
+def addSegmented(uid):
+    image_url = ""
+    image_name = ""
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_url = json_data['image_url']
+            image_name = json_data['image_name']
+        except:
+            return make_response(jsonify({"message": "Error, must include image url and name"}), 400)
+    objID = ObjectId(uid)
+    if not objID:
+        return make_response(jsonify({'message': 'missing uid'}), 400)
+    prev_image = db.images.find_one_or_404(
+        {"uid": objID, "image_name": image_name})
+    prev_image = db.images.find_one_and_update(
+        {"uid": objID, "image_name": image_name},
+        {'$set': {"segmented_image": image_url}}
+    )
+    return make_response(jsonify({"message": "Successfully added segmented image url!"}), 200)
+
+
+@app.route("/deleteImage", methods=['POST'])
+@auth_required
+def deleteImage(uid):
+    image_name = ""
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_name = json_data['image_name']
+        except:
+            return make_response(jsonify({"message": "Error, must include image name"}), 400)
+    objID = ObjectId(uid)
+    if not objID:
+        return make_response(jsonify({'message': 'missing uid'}), 400)
+    prev_image = db.images.find_one_or_404(
+        {"uid": objID, "image_name": image_name})
+    prev_image = db.images.find_one_and_delete(
+        {"uid": objID, "image_name": image_name}
+    )
+    return make_response(jsonify({"message": "Successfully deleted  image!"}), 200)
+
+
+@app.route("/deleteSegmentedImage", methods=['POST'])
+@auth_required
+def deleteSegmented(uid):
+    image_url = ""
+    image_name = ""
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_name = json_data['image_name']
+        except:
+            return make_response(jsonify({"message": "Error, must include image name"}), 400)
+    objID = ObjectId(uid)
+    if not objID:
+        return make_response(jsonify({'message': 'missing uid'}), 400)
+    prev_image = db.images.find_one_or_404(
+        {"uid": objID, "image_name": image_name})
+    prev_image = db.images.find_one_and_update(
+        {"uid": objID, "image_name": image_name},
+        {'$unset': {"segmented_image": ""}}
+    )
+    return make_response(jsonify({"message": "Successfully deleted segmented image url!"}), 200)
+
+
 @app.route("/getImages", methods=['GET'])
 @auth_required
 def getImages(uid):
