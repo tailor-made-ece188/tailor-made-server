@@ -194,6 +194,31 @@ def findAssociated(uid):
     return make_response(jsonify({"message": "Successfully added"}), 200)
 
 
+@app.route("/getAssociated", methods=['GET'])
+@auth_required
+def getAssociated(uid):
+    objID = ObjectId(uid)
+    image_name = ""
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_name = json_data['image_name']
+        except:
+            return make_response(jsonify({"message": "Error, must include image name"}), 400)
+    db_image = db.images.find_one_or_404(
+        {"uid": objID, "image_name": image_name})
+    similarClothes = db_image.get("similarClothes", [])
+    similarCategories = db_image.get("categoryNames", [])
+    if (len(similarClothes) <= 0 or len(similarCategories) <= 0):
+        return make_response(jsonify({"message": "No associated clothes to picture"}),
+                             400)
+
+    return make_response(jsonify({
+        "similarClothes": similarClothes,
+        "similarCategories": similarCategories}),
+        200)
+
+
 @app.route("/updateAssociatedCategory", methods=['POST'])
 @auth_required
 def updateAssociatedCategory(uid):
@@ -208,7 +233,7 @@ def updateAssociatedCategory(uid):
             index = json_data["index"]
             new_name = json_data["new_name"]
         except:
-            return make_response(jsonify({"message": "Error, must include image name"}), 400)
+            return make_response(jsonify({"message": "Error, must include image name, index to update, and new name"}), 400)
     db_image = db.images.find_one_or_404(
         {"uid": objID, "image_name": image_name})
     db_image = db.images.find_one_and_update(
