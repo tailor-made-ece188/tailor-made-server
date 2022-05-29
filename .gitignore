@@ -2,3 +2,4 @@ env/
 model_env/
 .env
 __pycache__
+lykdatResponse.json

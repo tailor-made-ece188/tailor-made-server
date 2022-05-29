@@ -4,7 +4,7 @@ Our server is made with Flask, and uses MongoDB Atlas as its database.
 
 ## Developer Guide:
 
-* If you don't have your virtual environment set up...
+- If you don't have your virtual environment set up...
 
 ```sh
 # making a virtual environment
@@ -25,3 +25,5 @@ pip freeze > requirements.txt
 python3 server_config.py
 ```
 
+To push to heroku...
+`git push heroku main`
