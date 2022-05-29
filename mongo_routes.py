@@ -168,6 +168,9 @@ def findAssociated(uid):
     lykdatData = lykdatRes.json()
     print(lykdatData)
 
+    # with open('lykdatResponse.json') as f:
+    #     lykdatData = json.load(f)
+
     lykdatData = lykdatData['data']['result_groups']
     print(lykdatData)
 
@@ -180,8 +183,36 @@ def findAssociated(uid):
         return filteredData
 
     filteredData = list(map(lambda group: filterArr(group), lykdatData))
+
+    default_category_names = list(
+        map(lambda num: "Category " + str(num + 1), range(len(filteredData))))
     updatedData = db.images.find_one_and_update(
         {"uid": objID, "image_name": image_name},
-        {'$set': {"similarClothes": filteredData}}
+        {'$set': {"similarClothes": filteredData,
+                  "categoryNames": default_category_names}}
     )
     return make_response(jsonify({"message": "Successfully added"}), 200)
+
+
+@app.route("/updateAssociatedCategory", methods=['POST'])
+@auth_required
+def updateAssociatedCategory(uid):
+    objID = ObjectId(uid)
+    image_name = ""
+    index = ""
+    new_name = ""
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_name = json_data['image_name']
+            index = json_data["index"]
+            new_name = json_data["new_name"]
+        except:
+            return make_response(jsonify({"message": "Error, must include image name"}), 400)
+    db_image = db.images.find_one_or_404(
+        {"uid": objID, "image_name": image_name})
+    db_image = db.images.find_one_and_update(
+        {"uid": objID, "image_name": image_name},
+        {'$set': {"categoryNames."+str(index): new_name}}
+    )
+    return make_response(jsonify({"message": "Successfully updated category name"}), 200)
