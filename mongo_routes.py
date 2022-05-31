@@ -51,7 +51,8 @@ def addImage(uid):
     new_image = db.images.insert_one({
         "uid": objID,
         "image_name": image_name,
-        "uploaded_image": image_url
+        "uploaded_image": image_url,
+        "public": False
     })
     return make_response(jsonify({"message": "Successfully added image!"}), 200)
 
@@ -241,3 +242,40 @@ def updateAssociatedCategory(uid):
         {'$set': {"categoryNames."+str(index): new_name}}
     )
     return make_response(jsonify({"message": "Successfully updated category name"}), 200)
+
+
+@app.route("/updatePublic", methods=['POST'])
+@auth_required
+def updatePublic(uid):
+    objID = ObjectId(uid)
+    image_name = ""
+    new_val = False
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_name = json_data['image_name']
+            new_val = json_data['val']
+        except:
+            return make_response(jsonify({"message": "Error, must include image name and val"}), 400)
+    db_image = db.images.find_one_or_404(
+        {"uid": objID, "image_name": image_name})
+    prev_image = db.images.find_one_and_update(
+        {"uid": objID, "image_name": image_name},
+        {'$set': {"public": new_val}}
+    )
+    return make_response(jsonify({"message": "Successfully changed public value"}), 200)
+
+
+@app.route("/getPublicImages", methods=['GET'])
+@auth_required
+def getPublic(uid):
+    objID = ObjectId(uid)
+    images = db.images.find({"uid": {'$ne': objID}, "public": True})
+    publicImages = []
+    for image in images:
+        # print(image)
+        serializedImage = image
+        serializedImage['_id'] = str(image['_id'])
+        serializedImage['uid'] = str(image['uid'])
+        publicImages.append(serializedImage)
+    return make_response(jsonify({"images": publicImages}), 200)
