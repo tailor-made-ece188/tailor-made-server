@@ -220,6 +220,26 @@ def getAssociated(uid):
         200)
 
 
+@app.route("/getAssociatedCategories", methods=["GET"])
+@auth_required
+def getAssociatedCategories(uid):
+    objID = ObjectId(uid)
+    image_name = ""
+    if request.is_json:
+        try:
+            json_data = request.get_json()
+            image_name = json_data['image_name']
+        except:
+            return make_response(jsonify({"message": "Error, must include image name"}), 400)
+        db_image = db.images.find_one_or_404(
+            {"uid": objID, "image_name": image_name})
+        try:
+            categories = db_image["categoryNames"]
+        except:
+            return make_response(jsonify({"message": "Error, no categories"}), 404)
+        return make_response(jsonify({"categories": categories}), 200)
+
+
 @app.route("/updateAssociatedCategory", methods=['POST'])
 @auth_required
 def updateAssociatedCategory(uid):
